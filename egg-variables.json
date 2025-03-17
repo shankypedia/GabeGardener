@@ -1,0 +1,52 @@
+{
+  "name": "GabeGardener",
+  "description": "A playful utility for cultivating Steam game hours",
+  "startup": "bash pterodactyl_startup.sh",
+  "variables": [
+    {
+      "name": "Steam Username",
+      "description": "Your Steam account username",
+      "env_variable": "STEAM_USERNAME",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:128"
+    },
+    {
+      "name": "Steam Password",
+      "description": "Your Steam account password",
+      "env_variable": "STEAM_PASSWORD",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:128"
+    },
+    {
+      "name": "Steam Shared Secret",
+      "description": "Your Steam shared secret for 2FA (optional)",
+      "env_variable": "STEAM_SHARED_SECRET",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:128"
+    },
+    {
+      "name": "Dashboard Enabled",
+      "description": "Enable the web dashboard (true/false)",
+      "env_variable": "DASHBOARD_ENABLED",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false"
+    },
+    {
+      "name": "Dashboard Port",
+      "description": "Port for the web dashboard",
+      "env_variable": "DASHBOARD_PORT",
+      "default_value": "5000",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|numeric|min:1024|max:65535"
+    }
+  ]
+}
