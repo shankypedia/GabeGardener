@@ -1,0 +1,26 @@
+{
+  "name": "GabeGardener",
+  "description": "A playful utility for cultivating Steam game hours",
+  "repository": "https://github.com/shankyepdia/gabegardener",
+  "keywords": [
+    "python",
+    "steam",
+    "gaming",
+    "hour-booster"
+  ],
+  "env": {
+    "GABEGARDENER_DASHBOARD": {
+      "description": "Enable the web dashboard",
+      "value": "true"
+    },
+    "GABEGARDENER_DASHBOARD_PORT": {
+      "description": "Port for the web dashboard (Heroku will set PORT env var)",
+      "value": "$PORT"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
