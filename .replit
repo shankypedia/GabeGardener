@@ -1,0 +1,14 @@
+language = "python3"
+run = "python main.py"
+entrypoint = "main.py"
+
+[env]
+GABEGARDENER_DASHBOARD = "true"
+GABEGARDENER_DASHBOARD_PORT = "443"
+
+[nix]
+channel = "stable-22_11"
+
+[deployment]
+run = ["python", "main.py"]
+deploymentTarget = "cloudrun"
