@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabeGardener Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <h1>GabeGardener</h1>
+        </div>
+        <div class="actions">
+            <button id="refreshBtn" class="btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button id="restartBtn" class="btn btn-warning"><i class="fas fa-redo"></i> Restart</button>
+            <button id="stopBtn" class="btn btn-danger"><i class="fas fa-stop"></i> Stop</button>
+            <button id="startBtn" class="btn btn-success"><i class="fas fa-play"></i> Start</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="dashboard-header">
+                <h2>Account Status</h2>
+                <span id="lastUpdated">Last updated: Never</span>
+            </div>
+
+            <div class="status-cards" id="statusCards">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading account status...</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats">
+            <h2>Statistics</h2>
+            <div class="stats-content">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading statistics...</p>
+                </div>
+                <pre id="statsReport"></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>GabeGardener &copy; 2025GabeGardener &copy; 2025 | <a href="https://github.com/shankypedia/GabeGardener"
+                target="_blank">GitHub</a></p>
+    </footer>
+
+    <script>
+        // Dashboard functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initial data load
+            refreshStatus();
+            loadStats();
+
+            // Set up refresh button
+            document.getElementById('refreshBtn').addEventListener('click', function () {
+                refreshStatus();
+                loadStats();
+            });
+
+            // Set up restart button
+            document.getElementById('restartBtn').addEventListener('click', function () {
+                if (confirm('Are you sure you want to restart all sessions?')) {
+                    fetch('/api/restart', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Sessions restarted successfully');
+                                setTimeout(refreshStatus, 5000);
+                            } else {
+                                alert('Error: ' + (data.error || 'Unknown error'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error restarting sessions');
+                        });
+                }
+            });
+
+            // Set up stop button
+            document.getElementById('stopBtn').addEventListener('click', function () {
+                if (confirm('Are you sure you want to stop all sessions?')) {
+                    fetch('/api/stop', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Sessions stopped successfully');
+                                setTimeout(refreshStatus, 2000);
+                            } else {
+                                alert('Error: ' + (data.error || 'Unknown error'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error stopping sessions');
+                        });
+                }
+            });
+
+            // Set up start button
+            document.getElementById('startBtn').addEventListener('click', function () {
+                fetch('/api/start', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Sessions started successfully');
+                            setTimeout(refreshStatus, 5000);
+                        } else {
+                            alert('Error: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error starting sessions');
+                    });
+            });
+
+            // Auto-refresh every 30 seconds
+            setInterval(refreshStatus, 30000);
+            setInterval(loadStats, 300000); // Refresh stats every 5 minutes
+        });
+
+        function refreshStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    updateStatusCards(data);
+                    updateLastUpdated();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('statusCards').innerHTML =
+                        '<div class="error"><i class="fas fa-exclamation-triangle"></i><p>Error loading status</p></div>';
+                });
+        }
+
+        function updateStatusCards(accounts) {
+            const container = document.getElementById('statusCards');
+
+            if (!accounts || accounts.length === 0) {
+                container.innerHTML = '<div class="no-data"><p>No active accounts</p></div>';
+                return;
+            }
+
+            let html = '';
+
+            accounts.forEach(account => {
+                const statusClass = getStatusClass(account.status);
+
+                html += `
+                <div class="status-card">
+                    <div class="status-header ${statusClass}">
+                        <h3>${account.username}</h3>
+                        <span class="status-badge">${account.status}</span>
+                    </div>
+                    <div class="status-body">
+                        <div class="status-item">
+                            <span class="label">Visibility:</span>
+                            <span class="value">${account.visible ? 'Online' : 'Invisible'}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Games:</span>
+                            <span class="value">${account.game_count} active</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Auto-Reply:</span>
+                            <span class="value">${account.auto_reply ? 'Enabled' : 'Disabled'}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Game Rotation:</span>
+                            <span class="value">${account.game_rotation ? 'Enabled' : 'Disabled'}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'online':
+                    return 'status-online';
+                case 'offline':
+                    return 'status-offline';
+                case 'logging_in':
+                case 'reconnecting':
+                    return 'status-pending';
+                case 'login_failed':
+                case 'invalid_password':
+                case 'rate_limited':
+                case 'error':
+                    return 'status-error';
+                default:
+                    return '';
+            }
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
+        }
+
+        function loadStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.stats) {
+                        document.getElementById('statsReport').textContent = data.stats;
+                    } else {
+                        document.getElementById('statsReport').textContent = 'No statistics available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('statsReport').textContent = 'Error loading statistics';
+                });
+        }
+    </script>
+</body>
+
+</html>
